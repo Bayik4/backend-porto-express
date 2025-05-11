@@ -1,5 +1,6 @@
 import { Router } from "express";
 import postController from "../controllers/post.controller";
+import cloudinaryService from "../services/cloudinary.service";
 
 const router = Router();
 

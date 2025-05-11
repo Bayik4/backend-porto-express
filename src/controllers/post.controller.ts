@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import postService from "../services/post.service";
 import { sendFailedResponse, sendSuccessResponse } from "../utils/response.util";
+import cloudinaryService from "../services/cloudinary.service";
 
 const postController = {
   async createPost(req: Request, res: Response) {
@@ -98,10 +99,22 @@ const postController = {
     }
   },
   
+  async uploadAndUpdateOgImage(req: Request, res: Response) {
+    try {
+      
+    } catch (error) {
+      const e = error as Error;
+      sendFailedResponse(res, "Failed upload og image.", 422, [e.message]);
+    }
+  },  
+  
   async deletePost(req: Request, res: Response) {
     const { id } = req.params;
     try {
+      const post = await postService.getPostById(id);
+      if(post.meta?.og_image) await cloudinaryService.delete(post.meta.og_image.name!);
       await postService.deletePost(id);
+
       sendSuccessResponse(res, null, "Success delete post.");
     } catch (error) {
       const e = error as Error;
