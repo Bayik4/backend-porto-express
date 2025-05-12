@@ -9,9 +9,11 @@ router.post(
   cloudinaryService.upload("og-images", "og").single("og-image"),
   uploadController.uploadOrUpdateOgImage
 );
+
 router.post(
   "/:collection/:id/thumbnail",
-  cloudinaryService.upload("thumbnails", "thumb").single("thumbnail")
+  cloudinaryService.upload("thumbnails", "thumb").single("thumbnail"),
+  uploadController.uploadOrUpadateThumbnail
 );
 
 export default router;

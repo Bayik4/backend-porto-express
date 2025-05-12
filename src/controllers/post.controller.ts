@@ -99,20 +99,12 @@ const postController = {
     }
   },
   
-  async uploadAndUpdateOgImage(req: Request, res: Response) {
-    try {
-      
-    } catch (error) {
-      const e = error as Error;
-      sendFailedResponse(res, "Failed upload og image.", 422, [e.message]);
-    }
-  },  
-  
   async deletePost(req: Request, res: Response) {
     const { id } = req.params;
     try {
       const post = await postService.getPostById(id);
       if(post.meta?.og_image) await cloudinaryService.delete(post.meta.og_image.name!);
+      if(post.thumbnail) await cloudinaryService.delete(post.thumbnail.public_id!);
       await postService.deletePost(id);
 
       sendSuccessResponse(res, null, "Success delete post.");

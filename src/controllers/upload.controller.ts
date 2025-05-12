@@ -34,6 +34,33 @@ const uploadController = {
       const e = error as Error;
       sendFailedResponse(res, "Failed upload og image.", 422, [e.message]);
     }
+  },
+
+  async uploadOrUpadateThumbnail(req: Request, res: Response) {
+    const { collection, id } = req.params;
+    try {
+      if(!req.file) throw new Error("Image is required.");
+      const { path, filename } = req.file!;
+
+      if(collection == "posts") {
+        const post = await postService.getPostById(id);
+        if(post.meta?.og_image) await cloudinaryService.delete(post.meta?.og_image?.name!);
+        await postService.updatePost({
+          thumbnail: {
+            public_id: filename,
+            url: path,
+            alt: post.thumbnail?.alt ?? '',
+            caption: post.thumbnail?.caption ?? ''
+          }
+        }, post.id!)        
+        
+        sendSuccessResponse(res, {id: post.id},"Success upload thumbnail.");
+        return;
+      }
+    } catch (error) {
+      const e = error as Error;
+      sendFailedResponse(res, "Failed upload thumbnail.", 422, [e.message]);     
+    }
   }
 }
 
