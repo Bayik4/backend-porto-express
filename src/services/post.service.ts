@@ -29,6 +29,7 @@ const postService = {
   async getPostById(id: string) {
     try {
       const rawData = await postRepository.getById(id);
+      if(!rawData.exists) throw new Error("Post not found.");
       const post: Post = {
         id: rawData.id,
         ...rawData.data()
@@ -43,7 +44,8 @@ const postService = {
   async getPostBySlug(slug: string) {
     try {
       const post = await postRepository.getBySlug(slug);
-      return post;
+      if(post.length == 0) throw new Error("Post not found.");
+      return post[0];
     } catch (error) {
       const e = error as Error;
       throw new Error(e.message);

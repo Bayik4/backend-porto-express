@@ -6,13 +6,13 @@ const router = Router();
 
 router.post(
   "/:collection/:id/og-image",
-  cloudinaryService.upload("og-images", "og").single("og-image"),
+  cloudinaryService.getMulterMemoryStorage().single('og-image'),
   uploadController.uploadOrUpdateOgImage
 );
 
 router.post(
   "/:collection/:id/thumbnail",
-  cloudinaryService.upload("thumbnails", "thumb").single("thumbnail"),
+  cloudinaryService.getMulterMemoryStorage().single('thumbnail'),
   uploadController.uploadOrUpadateThumbnail
 );
 

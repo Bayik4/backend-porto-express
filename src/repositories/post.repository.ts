@@ -23,7 +23,7 @@ const postRepository = {
   async getBySlug(slug: string) {
     const docRef = await db.collection(COLLECTION_NAME).where('slug', '==', slug).get();
     const post = docRef.docs.map(doc => ({id: doc.id, ...doc.data()}));
-    return post[0];
+    return post;
   },
 
   async update(data: Post, id: string) {

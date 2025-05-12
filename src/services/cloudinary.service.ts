@@ -2,6 +2,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import multer from "multer";
 import env from "dotenv";
+import streamifier from "streamifier";
 
 env.config();
 
@@ -26,6 +27,34 @@ const cloudinaryService = {
     });
 
     return multer({ storage });
+  },
+
+  getMulterMemoryStorage() {
+    const storage = multer.memoryStorage();
+    return multer({ storage });
+  },
+
+  manualUpload(buffer: Buffer, folder: string, prefix: string) {
+    return new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder,
+          public_id: `${prefix}_${Date.now()}`,
+          format: "webp",
+          transformation: [{ quality: "auto" }, { fetch_format: "auto" }],
+        },
+        (error, result) => {
+          if (result)
+            resolve({
+              public_id: result.public_id,
+              secure_url: result.secure_url,
+              display_name: result.display_name
+            });
+          reject(error);
+        }
+      );
+      streamifier.createReadStream(buffer).pipe(stream);
+    });
   },
 
   async delete(publicId: string) {
