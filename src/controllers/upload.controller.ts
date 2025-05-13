@@ -4,10 +4,7 @@ import {
   sendSuccessResponse,
 } from "../utils/response.util";
 import postService from "../services/post.service";
-import cloudinaryService from "../services/cloudinary.service";
 import projectService from "../services/project.service";
-import Project from "../models/project.model";
-import Post from "../models/post.model";
 
 const uploadController = {
   async uploadOrUpdateOgImage(req: Request, res: Response) {
@@ -57,6 +54,23 @@ const uploadController = {
       sendFailedResponse(res, "Failed upload thumbnail.", 422, [e.message]);
     }
   },
+  
+  async uploadOrUpdateProjectImages(req: Request, res: Response) {
+    const { id } = req.params;
+    try {
+      if(!req.files) throw new Error("Image is required.");
+      const files = req.files as Express.Multer.File[];
+      files.map(async (file) => {
+        const { buffer } = file;
+        await projectService.uploadOrUpdateProjectImages(buffer, id);
+      });
+      
+      sendSuccessResponse(res, { id}, "Success upload project image.");
+    } catch (error) {
+      const e = error as Error;
+      sendFailedResponse(res, "Failed upload project image.", 422, [e.message]);
+    }
+  }
 };
 
 export default uploadController;

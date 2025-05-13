@@ -66,6 +66,10 @@ const projectService = {
 
   async deleteProject(id: string) {
     try {
+      const project: Project = await this.getProjectById(id);
+      if(project.photos) await this.deleteAllProjectImage(project.photos);
+      if(project.thumbnail) await cloudinaryService.delete(project.thumbnail.public_id!);
+      if(project.meta?.og_image) await cloudinaryService.delete(project.meta.og_image.name!);
       await projectRepository.delete(id);
       return true;
     } catch (error) {
@@ -76,7 +80,7 @@ const projectService = {
 
   async uploadOrUpdateOgImage(buffer: Buffer, id: string) {
     try {
-      const project: Project = await projectService.getProjectById(id);
+      const project: Project = await this.getProjectById(id);
       if (project.meta?.og_image)
         await cloudinaryService.delete(project.meta.og_image.name!);
 
@@ -86,7 +90,7 @@ const projectService = {
         "og"
       )) as { public_id: string; secure_url: string };
 
-      await projectService.updateProject(
+      await this.updateProject(
         {
           meta: {
             meta_title: project.meta?.meta_title,
@@ -110,7 +114,7 @@ const projectService = {
 
   async uploadOrUpdateThumbnail(buffer: Buffer, id: string) {
     try {
-      const project: Project = await projectService.getProjectById(id);
+      const project: Project = await this.getProjectById(id);
       if (project.meta?.og_image)
         await cloudinaryService.delete(project.meta.og_image.name!);
 
@@ -120,7 +124,7 @@ const projectService = {
         "thumb"
       )) as { public_id: string; secure_url: string };
 
-      await projectService.updateProject(
+      await this.updateProject(
         {
           thumbnail: {
             public_id: public_id,
@@ -138,6 +142,54 @@ const projectService = {
       throw new Error(e.message);
     }
   },
+  
+  async uploadOrUpdateProjectImages(buffer: Buffer, id: string) {
+    try {
+      const project: Project = await this.getProjectById(id);
+      const { public_id, secure_url } = (await cloudinaryService.manualUpload(
+        buffer,
+        "photos",
+        "project"
+      )) as { public_id: string; secure_url: string };
+      await this.updateProject({
+        photos: [
+          ...project.photos ?? [],
+          {
+            publicId: public_id,
+            url: secure_url,
+          }
+        ]
+      }, project.id!);
+
+      return project;
+    } catch (error) {
+      const e = error as Error;
+      throw new Error(e.message);
+    }
+  },
+
+  async deleteProjectImage(publicId: string) {
+    try {
+      await cloudinaryService.delete(publicId);
+      return true;
+    } catch (error) {
+      const e = error as Error;
+      throw new Error(e.message);
+    }
+  },
+
+  async deleteAllProjectImage(photos: Project['photos']) {
+    try {
+      photos?.map(async (photo) => {
+        await cloudinaryService.delete(photo.publicId!);
+      });
+      
+      return true;
+    } catch (error) {
+      const e = error as Error;  
+      throw new Error(e.message);
+    }
+  }
 };
 
 export default projectService;

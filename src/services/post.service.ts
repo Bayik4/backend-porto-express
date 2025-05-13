@@ -68,8 +68,12 @@ const postService = {
 
   async deletePost(id: string) {
     try {
-      return await postRepository.delete(id);
-    } catch (error) {
+      const post = await this.getPostById(id);
+      if(post.meta?.og_image) await cloudinaryService.delete(post.meta.og_image.name!);
+      if(post.thumbnail) await cloudinaryService.delete(post.thumbnail.public_id!);
+      await postRepository.delete(id);
+      return true;
+      } catch (error) {
       const e = error as Error;
       throw new Error(e.message);
     }

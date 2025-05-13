@@ -16,4 +16,6 @@ router.post(
   uploadController.uploadOrUpadateThumbnail
 );
 
+router.post("/:id/project-images", cloudinaryService.getMulterMemoryStorage().array('project-images', 5), uploadController.uploadOrUpdateProjectImages);
+
 export default router;
