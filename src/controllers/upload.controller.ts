@@ -18,60 +18,14 @@ const uploadController = {
 
       // handle post og image
       if (collection == "posts") {
-        const post: Post = await postService.getPostById(id);
-        if (post.meta?.og_image)
-          await cloudinaryService.delete(post.meta?.og_image?.name!);
-
-        const { public_id, secure_url } = (await cloudinaryService.manualUpload(
-          buffer,
-          "og-images",
-          "og"
-        )) as { public_id: string; secure_url: string };
-
-        await postService.updatePost(
-          {
-            meta: {
-              meta_title: post.meta?.meta_title,
-              meta_description: post.meta?.meta_description,
-              meta_keywords: post.meta?.meta_keywords,
-              og_image: {
-                name: public_id,
-                path: secure_url,
-              },
-            },
-          },
-          post.id!
-        );
+        const post = await postService.uploadOrUpdateOgImage(buffer, id);
 
         sendSuccessResponse(res, { id: post.id }, "Success upload og image.");
         return;
       }
 
       // handle project og image 
-      const project: Project = await projectService.getProjectById(id);
-      if (project.meta?.og_image)
-        await cloudinaryService.delete(project.meta.og_image.name!);
-      
-      const { public_id, secure_url } = (await cloudinaryService.manualUpload(
-          buffer,
-          "og-images",
-          "og"
-        )) as { public_id: string; secure_url: string };
-
-      await projectService.updateProject(
-        {
-          meta: {
-            meta_title: project.meta?.meta_title,
-            meta_description: project.meta?.meta_description,
-            meta_keywords: project.meta?.meta_keywords,
-            og_image: {
-              name: public_id,
-              path: secure_url,
-            },
-          },
-        },
-        project.id!
-      );
+      const project = await projectService.uploadOrUpdateOgImage(buffer, id);
 
       sendSuccessResponse(res, { id: project.id }, "Success upload og image.");
     } catch (error) {
@@ -88,54 +42,15 @@ const uploadController = {
 
       // handle post thumbnail
       if (collection == "posts") {
-        const post = await postService.getPostById(id);
-        if (post.meta?.og_image)
-          await cloudinaryService.delete(post.meta?.og_image?.name!);
-
-        const { public_id, secure_url } = (await cloudinaryService.manualUpload(
-          buffer,
-          "og-images",
-          "og"
-        )) as { public_id: string; secure_url: string };
-
-        await postService.updatePost(
-          {
-            thumbnail: {
-              public_id: public_id,
-              url: secure_url,
-              alt: post.thumbnail?.alt ?? "",
-              caption: post.thumbnail?.caption ?? "",
-            },
-          },
-          post.id!
-        );
+        const post = await postService.uploadOrUpdateThumbnail(buffer, id);
 
         sendSuccessResponse(res, { id: post.id }, "Success upload thumbnail.");
         return;
       }
 
       // handle project thumbnail
-      const project: Project = await projectService.getProjectById(id);
-      if (project.meta?.og_image)
-        await cloudinaryService.delete(project.meta.og_image.name!);
+      const project = await projectService.uploadOrUpdateThumbnail(buffer, id);
 
-      const { public_id, secure_url } = (await cloudinaryService.manualUpload(
-        buffer,
-        "thumbnails",
-        "thumb"
-      )) as { public_id: string; secure_url: string };
-
-      await projectService.updateProject(
-        {
-          thumbnail: {
-            public_id: public_id,
-            url: secure_url,
-            alt: project.thumbnail?.alt ?? "",
-            caption: project.thumbnail?.caption ?? "",
-          },
-        },
-        project.id!
-      );
       sendSuccessResponse(res, { id: project.id }, "Success upload thumbnail.");
     } catch (error) {
       const e = error as Error;
