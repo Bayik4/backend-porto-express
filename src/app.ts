@@ -10,7 +10,4 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/v1', rootRouter);
 
-app.listen(8000, () => {
-  console.log("server running on port 8000");
-});
-
+export default app;
