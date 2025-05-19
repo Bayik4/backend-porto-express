@@ -9,10 +9,32 @@ const projectRepository = {
     return docRef;
   },
 
-  async getAll() {
-    const docRef = await db.collection(COLLECTION_NAME).orderBy("createdAt", "desc").get();
-    const projects = docRef.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    return projects;
+  async getAll(limit: number = 5, startAfter: string | null) {
+    let docRef = db.collection(COLLECTION_NAME).orderBy("createdAt", "desc").limit(limit);
+    console.log(startAfter);
+    
+    if(startAfter) {
+      const lastDoc = await db.collection(COLLECTION_NAME).doc(startAfter).get();
+      if(!lastDoc.exists) {
+        throw new Error("startAfter documnet not found.");
+      }
+      docRef = docRef.startAfter(lastDoc)
+    }
+    
+    const snapshot = await docRef.get();
+
+    const products: Project[] = [];
+    let lastVisible: string | null = null;
+    
+    snapshot.forEach(doc => {
+      products.push({ id: doc.id, ...doc.data() });
+      lastVisible = doc.id
+    });
+
+    return {
+      data: products,
+      lastVisible
+    };
   },
 
   async getById(id: string) {

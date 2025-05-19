@@ -53,9 +53,11 @@ const projectController = {
   },
 
   async getAllProject(req: Request, res: Response) {
+    const perPage = req.query.perPage || 5;
+    const startAfter = req.query.startAfter as string || null;
     try {
-      const projects = await projectService.getAllProject();
-      sendSuccessResponse(res, projects, "Success get all project.");
+      const projects = await projectService.getAllProject(Number(perPage), startAfter);
+      sendSuccessResponse(res, { list: projects.data, lastVisible: projects.lastVisible }, "Success get all project.");
     } catch (error) {
       const e = error as Error;
       sendFailedResponse(res, "Failed get all project.", 422, [e.message]);

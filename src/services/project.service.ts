@@ -17,9 +17,9 @@ const projectService = {
     }
   },
 
-  async getAllProject() {
+  async getAllProject(perPage: number, startAfter: string | null = null) {
     try {
-      const projects = await projectRepository.getAll();
+      const projects = await projectRepository.getAll(perPage, startAfter);
       return projects;
     } catch (error) {
       const e = error as Error;
