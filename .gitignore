@@ -4,3 +4,4 @@ serviceAccount.json
 .env
 encoded.txt
 dist
+.vercel
