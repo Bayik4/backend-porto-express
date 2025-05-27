@@ -2,6 +2,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import Project from "../models/project.model";
 import projectRepository from "../repositories/project.repository";
 import cloudinaryService from "./cloudinary.service";
+import tagService from "./tag.service";
 
 const projectService = {
   async createProject(data: Project) {
@@ -30,9 +31,7 @@ const projectService = {
   async getProjectById(id: string) {
     try {
       const data = await projectRepository.getById(id);
-      if (!data.exists) throw new Error("Project not found.");
-      const project = { id: data.id, ...data.data() };
-      return project;
+      return data;
     } catch (error) {
       const e = error as Error;
       throw new Error(e.message);
@@ -42,8 +41,7 @@ const projectService = {
   async getProjectBySlug(slug: string) {
     try {
       const project = await projectRepository.getBySlug(slug);
-      if (project.length == 0) throw new Error("Project not found.");
-      return project[0];
+      return project;
     } catch (error) {
       const e = error as Error;
       throw new Error(e.message);
@@ -66,7 +64,7 @@ const projectService = {
 
   async deleteProject(id: string) {
     try {
-      const project: Project = await this.getProjectById(id);
+      const project = await this.getProjectById(id);
       if(project.photos) await this.deleteAllProjectImage(project.photos);
       if(project.thumbnail) await cloudinaryService.delete(project.thumbnail.public_id!);
       if(project.meta?.og_image) await cloudinaryService.delete(project.meta.og_image.name!);
@@ -80,7 +78,7 @@ const projectService = {
 
   async uploadOrUpdateOgImage(buffer: Buffer, id: string) {
     try {
-      const project: Project = await this.getProjectById(id);
+      const project = await this.getProjectById(id);
       if (project.meta?.og_image)
         await cloudinaryService.delete(project.meta.og_image.name!);
 
@@ -114,7 +112,7 @@ const projectService = {
 
   async uploadOrUpdateThumbnail(buffer: Buffer, id: string) {
     try {
-      const project: Project = await this.getProjectById(id);
+      const project = await this.getProjectById(id);
       if (project.meta?.og_image)
         await cloudinaryService.delete(project.meta.og_image.name!);
 
@@ -145,7 +143,7 @@ const projectService = {
   
   async uploadOrUpdateProjectImages(buffer: Buffer, id: string) {
     try {
-      const project: Project = await this.getProjectById(id);
+      const project = await this.getProjectById(id);
       const { public_id, secure_url } = (await cloudinaryService.manualUpload(
         buffer,
         "photos",
@@ -189,7 +187,22 @@ const projectService = {
       const e = error as Error;  
       throw new Error(e.message);
     }
-  }
+  },
+
+  async createOrUpdateTag(tags: string[]) {
+    return await Promise.all(
+      tags.map(async (name: string) => {
+        let tag = await tagService.getTagByName(name);
+
+        if (!tag) {
+          const newTag = await tagService.createTag(name);
+          tag = { id: newTag };
+        }
+
+        return tag.id;
+      }) || []
+    );
+  },
 };
 
 export default projectService;

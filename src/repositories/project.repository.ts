@@ -2,6 +2,7 @@ import { db } from "../config/firebase";
 import Project from "../models/project.model";
 
 const COLLECTION_NAME = 'projects';
+const TAG_COLLECTION = 'tag';
 
 const projectRepository = {
   async create(data: Project) {
@@ -22,23 +23,48 @@ const projectRepository = {
     
     const snapshot = await docRef.get();
 
-    const products: Project[] = [];
+    const projects: Project[] = [];
     let lastVisible: string | null = null;
     
     snapshot.forEach(doc => {
-      products.push({ id: doc.id, ...doc.data() });
+      projects.push({ id: doc.id, ...doc.data() });
       lastVisible = doc.id
     });
+    
+    const projectsWithTags = await Promise.all(projects.map( async (project) => {
+      const tags = await Promise.all((project.tags || []).map(async (tag) => {
+        const tagRef = await db.collection(TAG_COLLECTION).doc(tag as string).get();
+        return {id: tagRef.id, ...tagRef.data()}
+      }))
+      
+      return {
+        id: project.id,
+        ...project,
+        tags
+      }
+    }))
 
     return {
-      data: products,
+      data: projectsWithTags,
       lastVisible
     };
   },
 
   async getById(id: string) {
     const docRef = await db.collection(COLLECTION_NAME).doc(id).get();
-    return docRef;
+    if(!docRef.exists) throw new Error("Project not found.");
+    const project: Project = { id: docRef.id, ...docRef.data() }
+    
+    const tags = await Promise.all((project.tags || []).map(async (tag) => {
+      const tagRef = await db.collection(TAG_COLLECTION).doc(tag as string).get();
+      return { id: tagRef.id, ...tagRef.data() }
+    }));
+
+    return {
+      id: project.id,
+      ...project,
+      tags
+    };
   },
 
   async getBySlug(slug: string) {
@@ -46,8 +72,17 @@ const projectRepository = {
       .collection(COLLECTION_NAME)
       .where("slug", "==", slug)
       .get();
-    const project = docRef.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    return project;
+    const project: Project[] = docRef.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    
+    const tags = await Promise.all((project[0].tags || []).map(async (tag) => {
+      const tagRef = await db.collection(TAG_COLLECTION).doc(tag as string).get();
+      return { id: tagRef.id, ...tagRef.data() }
+    }));
+
+    return {
+      ...project[0],
+      tags
+    };
   },
 
   async update(data: Project, id: string) {

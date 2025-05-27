@@ -20,9 +20,11 @@ const projectController = {
       main_feature,
       contribution,
       challenge,
+      tags
     } = req.body;
 
     try {
+      const projectTags = await projectService.createOrUpdateTag(tags);
       const project = await projectService.createProject({
         slug: makeSlug(project_name),
         meta: {
@@ -38,6 +40,7 @@ const projectController = {
         main_feature,
         contribution,
         challenge,
+        tags: projectTags
       });
 
       sendSuccessResponse(
@@ -100,10 +103,12 @@ const projectController = {
       main_feature,
       contribution,
       challenge,
+      tags
     } = req.body;
     const {id} = req.params;
 
     try {
+      const projectTags = await projectService.createOrUpdateTag(tags);
       await projectService.updateProject({
         slug,
         meta: {
@@ -119,6 +124,7 @@ const projectController = {
         main_feature,
         contribution,
         challenge,  
+        tags: projectTags
       }, id);
       
       sendSuccessResponse(res, {id}, "Success update project.");

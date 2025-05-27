@@ -10,7 +10,7 @@ export default interface Project {
   thumbnail?: Thumbnail;
   meta?: Meta;
   author?: User;
-  tags?: Tag[];
+  tags?: Tag[] | string[];
   project_name?: string;
   start_date?: Date;
   end_date?: Date;
