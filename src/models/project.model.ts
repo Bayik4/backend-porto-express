@@ -2,6 +2,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import Meta from "./meta.model";
 import Thumbnail from "./thumbnail.model";
 import User from "./user.model";
+import Tag from "./tag.model";
 
 export default interface Project {
   id?: string;
@@ -9,6 +10,7 @@ export default interface Project {
   thumbnail?: Thumbnail;
   meta?: Meta;
   author?: User;
+  tags?: Tag[];
   project_name?: string;
   start_date?: Date;
   end_date?: Date;

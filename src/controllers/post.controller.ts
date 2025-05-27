@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import postService from "../services/post.service";
 import { sendFailedResponse, sendSuccessResponse } from "../utils/response.util";
+import tagService from "../services/tag.service";
 
 const postController = {
   async createPost(req: Request, res: Response) {
@@ -8,18 +9,21 @@ const postController = {
       meta_title,
       meta_description,
       meta_keywords,
+      tags,
       title,
       description,
       slug,
       content,
     } = req.body;
     try {
+      const postTags = await postService.createOrUpdateTag(tags);
       const post = await postService.createPost({
         meta: {
           meta_title,
           meta_description,
           meta_keywords,
         },
+        tags: postTags,
         title,
         description,
         slug,
@@ -75,16 +79,19 @@ const postController = {
       description,
       slug,
       content,
+      tags
     } = req.body;
     const { id } = req.params;
 
     try {
+      const postTags = await postService.createOrUpdateTag(tags);
       await postService.updatePost({
         meta: {
           meta_title,
           meta_description,
           meta_keywords
         },
+        tags: postTags,
         title,
         description,
         slug,

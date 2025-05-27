@@ -11,7 +11,6 @@ const projectRepository = {
 
   async getAll(limit: number = 5, startAfter: string | null) {
     let docRef = db.collection(COLLECTION_NAME).orderBy("createdAt", "desc").limit(limit);
-    console.log(startAfter);
     
     if(startAfter) {
       const lastDoc = await db.collection(COLLECTION_NAME).doc(startAfter).get();

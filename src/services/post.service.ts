@@ -2,6 +2,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import Post from "../models/post.model";
 import postRepository from "../repositories/post.repository";
 import cloudinaryService from "./cloudinary.service";
+import tagService from "./tag.service";
 
 const postService = {
   async createPost(data: Post) {
@@ -19,8 +20,8 @@ const postService = {
 
   async getAllPosts() {
     try {
-      const posts = await postRepository.getAll();
-      return posts;
+      const data = await postRepository.getAll();
+      return data;
     } catch (error) {
       const e = error as Error;
       throw new Error(e.message);
@@ -29,12 +30,7 @@ const postService = {
 
   async getPostById(id: string) {
     try {
-      const rawData = await postRepository.getById(id);
-      if(!rawData.exists) throw new Error("Post not found.");
-      const post: Post = {
-        id: rawData.id,
-        ...rawData.data()
-      }
+      const post = await postRepository.getById(id);
       return post;
     } catch (error) {
       const e = error as Error;
@@ -45,8 +41,7 @@ const postService = {
   async getPostBySlug(slug: string) {
     try {
       const post = await postRepository.getBySlug(slug);
-      if(post.length == 0) throw new Error("Post not found.");
-      return post[0];
+      return post;
     } catch (error) {
       const e = error as Error;
       throw new Error(e.message);
@@ -81,7 +76,7 @@ const postService = {
 
   async uploadOrUpdateOgImage(buffer: Buffer, id: string) {
     try {
-      const post: Post = await postService.getPostById(id);
+      const post = await postService.getPostById(id);
         if (post.meta?.og_image)
           await cloudinaryService.delete(post.meta?.og_image?.name!);
 
@@ -142,7 +137,22 @@ const postService = {
       const e = error as Error;
       throw new Error(e.message);
     }
-  }
+  },
+
+  async createOrUpdateTag(tags: string[]) {
+    return await Promise.all(
+      tags.map(async (name: string) => {
+        let tag = await tagService.getTagByName(name);
+
+        if (!tag) {
+          const newTag = await tagService.createTag(name);
+          tag = { id: newTag };
+        }
+
+        return tag.id;
+      }) || []
+    );
+  },
 };
 
 export default postService;
