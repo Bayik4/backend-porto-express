@@ -38,10 +38,12 @@ const postController = {
   },
 
   async getAllPosts(req: Request, res: Response) {
-    try {
-      const posts = await postService.getAllPosts();
+    const {per_page, start_after}   = req.query;
 
-      sendSuccessResponse(res, posts, "Success get all post.");
+    try {
+      const posts = await postService.getAllPosts(Number(per_page), start_after as string);
+
+      sendSuccessResponse(res, { list: posts.data, lastVisible: posts.lastVisible }, "Success get all post.");
     } catch (error) {
       const e = error as Error;
       sendFailedResponse(res, "Failed get all post.", 422, [e.message]);

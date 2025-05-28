@@ -18,6 +18,13 @@ const userRepository = {
     return { id: user.id, ...user.data() }
   },
   
+  async getByEmail(email: string) {
+    const docRef = await db.collection('users').where('email', '==', email).get();
+    if(docRef.empty) throw new Error("User not found.");
+    const user = docRef.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    return user[0];
+  },
+  
   async create(data: User) {
     const docRef = await db.collection('users').add(data);
     return docRef.id;

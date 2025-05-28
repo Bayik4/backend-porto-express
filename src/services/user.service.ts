@@ -13,6 +13,16 @@ const userService = {
       throw new Error(e.message);
     }
   },
+  
+  async getUserByEmail(email: string) {
+    try {
+      const user = await userRepository.getByEmail(email);
+      return user;
+    } catch (error) {
+      const e = error as Error;
+      throw new Error(e.message);
+    }
+  },
 
   async createUser(username: string, email: string, password: string) {
     try {

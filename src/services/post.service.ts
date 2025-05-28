@@ -18,9 +18,9 @@ const postService = {
     }
   },
 
-  async getAllPosts() {
+  async getAllPosts(perPage: number, startAfter: string | null) {
     try {
-      const data = await postRepository.getAll();
+      const data = await postRepository.getAll(perPage, startAfter);
       return data;
     } catch (error) {
       const e = error as Error;

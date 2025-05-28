@@ -9,24 +9,44 @@ const postRepository = {
     return await db.collection(COLLECTION_NAME).add(data);
   },
 
-  async getAll() {
-    const docRef = await db.collection(COLLECTION_NAME).get();
-    const posts: Post[] = docRef.docs.map(doc => ({id: doc.id, ...doc.data()}));
+  async getAll(limit: number = 12, startAfter?: string | null) {
+    let docRef = db.collection(COLLECTION_NAME).limit(limit);
+    
+     if(startAfter) {
+      const lastDoc = await db.collection(COLLECTION_NAME).doc(startAfter).get();
+      if(!lastDoc.exists) {
+        throw new Error("startAfter documnet not found.");
+      }
+      docRef = docRef.startAfter(lastDoc)
+    }
+    
+    const snapshot = await docRef.get();
+    
+    const posts: Post[] = [];
+    let lastVisible: string | null = null;
+    
+    snapshot.forEach(doc => {
+      posts.push({ id: doc.id, ...doc.data() });
+      lastVisible = doc.id
+    });
 
     const postWithTags = await Promise.all(posts.map(async (post) => {
       const tags = await Promise.all((post.tags || []).map(async (tag) => {
         const tagRef = await db.collection(TAG_COLLECTION).doc(tag as string).get();
         return { id: tagRef.id, ...tagRef.data() }
-      }))
+      }));
       
       return {
         id: post.id,
         ...post,
         tags
       }
-    }))
+    }));
 
-    return postWithTags;
+    return {
+      data: postWithTags,
+      lastVisible
+    };
   },
 
   async getById(id: string) {
