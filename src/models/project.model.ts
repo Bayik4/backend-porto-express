@@ -3,6 +3,7 @@ import Meta from "./meta.model";
 import Thumbnail from "./thumbnail.model";
 import User from "./user.model";
 import Tag from "./tag.model";
+import Technology from "./technology.model";
 
 export default interface Project {
   id?: string;
@@ -15,8 +16,8 @@ export default interface Project {
   start_date?: Date;
   end_date?: Date;
   description?: string;
-  technology_used?: string;
-  main_feature?: string;
+  technology_used?: Technology[] | string[];
+  main_feature?: Feature[];
   contribution?: string;
   challenge?: string;
   photos?: ProjectPhoto[];
@@ -29,4 +30,9 @@ interface ProjectPhoto {
   publicId?: string;
   url?: string;
   alt?: string;
+}
+
+interface Feature {
+  id?: string;
+  name?: string;
 }

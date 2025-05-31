@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import postService from "../services/post.service";
 import { sendFailedResponse, sendSuccessResponse } from "../utils/response.util";
-import tagService from "../services/tag.service";
 
 const postController = {
   async createPost(req: Request, res: Response) {

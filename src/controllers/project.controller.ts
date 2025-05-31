@@ -5,6 +5,7 @@ import {
 } from "../utils/response.util";
 import projectService from "../services/project.service";
 import { makeSlug } from "../utils/slug.util";
+import technologyService from "../services/technology.service";
 
 const projectController = {
   async createProject(req: Request, res: Response) {
@@ -25,6 +26,7 @@ const projectController = {
 
     try {
       const projectTags = await projectService.createOrUpdateTag(tags);
+      const projectTech = await technologyService.createOrUpdateTechnology(technology_used);
       const project = await projectService.createProject({
         slug: makeSlug(project_name),
         meta: {
@@ -36,7 +38,7 @@ const projectController = {
         start_date,
         end_date,
         description,
-        technology_used,
+        technology_used: projectTech,
         main_feature,
         contribution,
         challenge,
@@ -51,6 +53,7 @@ const projectController = {
       );
     } catch (error) {
       const e = error as Error;
+      console.log(e)
       sendFailedResponse(res, "Failed create project.", 422, [e.message]);
     }
   },
@@ -109,6 +112,7 @@ const projectController = {
 
     try {
       const projectTags = await projectService.createOrUpdateTag(tags);
+      const projectTech = await technologyService.createOrUpdateTechnology(technology_used);
       await projectService.updateProject({
         slug,
         meta: {
@@ -120,7 +124,7 @@ const projectController = {
         start_date,
         end_date,
         description,
-        technology_used,
+        technology_used: projectTech,
         main_feature,
         contribution,
         challenge,  

@@ -3,6 +3,7 @@ import Project from "../models/project.model";
 
 const COLLECTION_NAME = 'projects';
 const TAG_COLLECTION = 'tag';
+const TECH_COLLECTION = 'technologies';
 
 const projectRepository = {
   async create(data: Project) {
@@ -31,21 +32,27 @@ const projectRepository = {
       lastVisible = doc.id
     });
     
-    const projectsWithTags = await Promise.all(projects.map( async (project) => {
+    const projectsWithTagsAndTech = await Promise.all(projects.map( async (project) => {
       const tags = await Promise.all((project.tags || []).map(async (tag) => {
         const tagRef = await db.collection(TAG_COLLECTION).doc(tag as string).get();
         return {id: tagRef.id, ...tagRef.data()}
+      }))
+
+      const tech = await Promise.all((project.technology_used || []).map(async (t) => {
+        const techRef = await db.collection(TECH_COLLECTION).doc(t as string).get();
+        return { id: techRef.id, ...techRef.data() }
       }))
       
       return {
         id: project.id,
         ...project,
-        tags
+        tags,
+        technology_used: tech
       }
-    }))
+    }) || []);
 
     return {
-      data: projectsWithTags,
+      data: projectsWithTagsAndTech,
       lastVisible
     };
   },
@@ -60,11 +67,17 @@ const projectRepository = {
       return { id: tagRef.id, ...tagRef.data() }
     }));
 
-    return {
-      id: project.id,
-      ...project,
-      tags
-    };
+    const tech = await Promise.all((project.technology_used || []).map(async (t) => {
+        const techRef = await db.collection(TECH_COLLECTION).doc(t as string).get();
+        return { id: techRef.id, ...techRef.data() }
+      }))
+      
+      return {
+        id: project.id,
+        ...project,
+        tags,
+        technology_used: tech
+      };
   },
 
   async getBySlug(slug: string) {
